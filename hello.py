@@ -3,15 +3,30 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
-
+from datetime import datetime
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ruankey'
 
 ## users is gonna be the name of the table that we will reference to
 ## Config for database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Imastayer123@localhost/users'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite3:///users.db'
+
+# Secret Key
+app.config['SECRET_KEY'] = 'ruankey'
+
+# Initialize the database
 db = SQLAlchemy(app)
+
+# Create Model
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    email = db.Column(db.String(200), nullable=False, unique=True)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow())
+
+    # Create a String
+    def __repr__(self):
+        return '<Name %r>' % self.name
 
 @app.route("/")
 def index():
@@ -45,17 +60,18 @@ def view():
     return render_template("view.html")
 
 # Create name page
-# @app.route("/name", methods=["GET", "POST"])
-# def name():
-#     ## The form shows name, but when the page first loads, there is no name
-#     name = None
-#     form = NamerForm
-#     # Validate Form
-#     if form.validate_on_submit():
-#         name = form.name.data
-#         form.name.data = ''
-#
-#     return render_template("name.html",
-#                            name = name,
-#                            form = form)
+@app.route("/name", methods=["GET", "POST"])
+def name():
+    ## The form shows name, but when the page first loads, there is no name
+    name = None
+    form = NamerForm()
+    # Validate Form
+    if form.validate_on_submit():
+        name = form.name.data
+        form.name.data = ''
+        flash("Form submitted successfully")
+
+    return render_template("name.html",
+                           name = name,
+                           form = form)
 
